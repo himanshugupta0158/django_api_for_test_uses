@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Django Rest Filters
 from rest_framework import filters
-from rest_framework.filters import OrderingFilter
+from rest_framework.filters import OrderingFilter , SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 
@@ -39,11 +39,12 @@ from api.serializers import PhoneSerializer , UserSerializer , StudentSerializer
 class StudentListAPI(GenericAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-    filter_backends = [DjangoFilterBackend,OrderingFilter]
-    filterset_fields = ['passby' , 'roll']
+    filter_backends = [SearchFilter,DjangoFilterBackend,OrderingFilter]
+    # filterset_fields = ['passby' , 'roll']
     filterset_fields = '__all__'
     ordering_fields = '__all__'
     ordering = ['passby']
+    search_fields = ['roll','name','city','passby']
     
     def get(self, request):
         serializer = self.get_serializer(self.filter_queryset(self.get_queryset()), many=True)
