@@ -1,5 +1,3 @@
-import email
-from enum import unique
 from django.db import models
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
@@ -22,6 +20,22 @@ class Phone(models.Model):
     
     def __str__(self):
         return str(self.phone_number)
+    
+class Email_log(models.Model):
+    email = models.CharField(_("Receiver Email"),max_length=256 , blank=False, null=False)
+    subject = models.CharField(_("Subject"),max_length=256,blank=False, null=False)
+    body = models.CharField(_("Body"),max_length=1500)
+    # is_sent = models.BooleanField(default=False , editable=False)
+    
+    def __str__(self):
+        return "Email(Email _id : {} , Message Subject : {} )".format(self.email, self.subject)
+    
+    
+class Student(models.Model):
+    name = models.CharField(max_length=50)
+    roll = models.IntegerField()
+    city = models.CharField(max_length=50)
+    passby = models.CharField(max_length=50)
     
     
     
