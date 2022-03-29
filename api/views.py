@@ -1,43 +1,59 @@
-from tracemalloc import BaseFilter
-from warnings import filters
-from django.shortcuts import render , redirect
-from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth import logout , login
 from django.contrib.auth.hashers import make_password , check_password
+from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 
 # Django Rest Filters
 from rest_framework import filters
 from rest_framework.filters import OrderingFilter , SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
-
+from rest_framework.permissions import (
+    IsAdminUser,
+    AllowAny,
+    IsAuthenticatedOrReadOnly,
+    IsAuthenticated,
+    BasePermission,
+)
 
 from rest_framework.generics import GenericAPIView , ListAPIView
-from rest_framework.response import Response
+from rest_framework.response import Response 
+from rest_framework.pagination import PageNumberPagination
 
 from api.models import Email_log, Phone , Student
 from api.serializers import PhoneSerializer , UserSerializer , StudentSerializer , EmailSerializer , LoginSerializer
 
 
 # -----------------------------------------------
-# DJANGO REST FILTERS
+# DJANGO REST FILTERS , SEARCH , PAGINATION
 
 
-# class StudentListAPI(ListAPIView):
-#     queryset = Student.objects.all()
-#     serializer_class = StudentSerializer
-#     filter_backends = [DjangoFilterBackend,OrderingFilter]
-#     filterset_fields = ['passby' , 'roll']
-#     filterset_fields = '__all__'
-#     ordering_fields = '__all__'
-#     ordering = ['passby']
+class MyPageNumberPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'Student'
+    max_page_size = 100
     
-    
+
+
+"""
+class StudentListAPI(ListAPIView):
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+    pagination_class = MyPageNumberPagination 
+    filter_backends = [DjangoFilterBackend,OrderingFilter]
+    filterset_fields = ['passby' , 'roll']
+    filterset_fields = '__all__'
+    ordering_fields = '__all__'
+    ordering = ['passby']
+
+"""
+
 class StudentListAPI(GenericAPIView):
     queryset = Student.objects.all()
+    pagination_class = MyPageNumberPagination 
     serializer_class = StudentSerializer
     filter_backends = [SearchFilter,DjangoFilterBackend,OrderingFilter]
     # filterset_fields = ['passby' , 'roll']
@@ -45,12 +61,23 @@ class StudentListAPI(GenericAPIView):
     ordering_fields = '__all__'
     ordering = ['passby']
     search_fields = ['roll','name','city','passby']
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    
     
     def get(self, request):
-        serializer = self.get_serializer(self.filter_queryset(self.get_queryset()), many=True)
+        queryset = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
+        # print(queryset)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data , status=200)
-        
-# DJANGO REST FILTER
+    
+
+@login_required
+def authenticate(request):
+    return redirect('API/login')
+
+
+# DJANGO REST FILTERS , SEARCH , PAGINATION
 # --------------------------------------------------------------------
 
 
@@ -226,7 +253,7 @@ def mail(request):
 class UserAPIView(GenericAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
-    
+    permission_classes = [IsAuthenticatedOrReadOnly]
     def get_object(self,pk):
         try :
             return User.objects.get(pk=pk)

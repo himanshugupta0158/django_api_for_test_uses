@@ -19,8 +19,8 @@ urlpatterns = [
     path('email/',views.EmailAPIView.as_view()),
     path('email/<int:pk>',views.EmailAPIView.as_view()),
     path('user/',views.UserAPIView.as_view()),
-    path('login/',views.LoginAPIView.as_view()),
-    path('logout/',views.LogoutAPIView.as_view()),
+    path('login/',views.LoginAPIView.as_view(),name="login"),
+    path('logout/',views.LogoutAPIView.as_view(),name="logout"),
     path('student/',views.StudentListAPI.as_view()),
     
 ]
